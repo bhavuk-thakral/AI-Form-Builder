@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Form;
 use App\Services\FormBuilderService;
+use App\Jobs\GenerateFormFromPromptJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class FormController extends Controller
 {
@@ -41,6 +43,34 @@ class FormController extends Controller
 
         return redirect()->route('forms.edit', $form->id)
             ->with('toast_success', "Form '{$form->title}' created successfully! You are now in the canvas builder.");
+    }
+
+    /**
+     * Asynchronously generate form layout from an AI prompt.
+     */
+    public function generate(Request $request)
+    {
+        $request->validate([
+            'prompt' => ['required', 'string', 'min:5', 'max:1000'],
+        ]);
+
+        $prompt = $request->input('prompt');
+
+        // Create placeholder form with status "generating"
+        $form = Form::create([
+            'user_id' => Auth::id(),
+            'title' => 'Generating form...',
+            'description' => "AI is compiling layout details for: \"{$prompt}\" in the background...",
+            'status' => 'generating',
+            'schema' => ['fields' => []],
+            'share_token' => Str::random(32),
+        ]);
+
+        // Dispatch background queue job
+        GenerateFormFromPromptJob::dispatch($form, $prompt, Auth::id());
+
+        return redirect()->route('dashboard')
+            ->with('toast_success', "AI Form generation started! The form is compiling in the background and will show up shortly.");
     }
 
     /**

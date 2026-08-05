@@ -24,6 +24,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/forms/generate', [FormController::class, 'generate'])->name('forms.generate');
     Route::resource('forms', FormController::class);
     
     Route::get('/forms/{form}/submissions', [FormSubmissionController::class, 'index'])->name('forms.submissions.index');

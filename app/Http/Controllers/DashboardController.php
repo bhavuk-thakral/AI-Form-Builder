@@ -45,6 +45,7 @@ class DashboardController extends Controller
             return [
                 'id' => $form->id,
                 'title' => $form->title,
+                'status' => $form->status,
                 'fields_count' => is_array($form->schema) && isset($form->schema['fields']) 
                     ? count($form->schema['fields']) 
                     : 0,

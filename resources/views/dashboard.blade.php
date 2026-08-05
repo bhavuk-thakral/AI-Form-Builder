@@ -110,7 +110,19 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="badge bg-success bg-opacity-10 text-success border-0 px-2 py-1.5 rounded-2 small fw-medium">Active</span>
+                                @if($form['status'] === 'generating')
+                                    <span class="badge bg-warning bg-opacity-10 text-warning border-0 px-2 py-1.5 rounded-2 small fw-medium">
+                                        <span class="spinner-border spinner-border-sm me-1" role="status" style="width: 0.75rem; height: 0.75rem;"></span> Generating...
+                                    </span>
+                                @elseif($form['status'] === 'active')
+                                    <span class="badge bg-success bg-opacity-10 text-success border-0 px-2 py-1.5 rounded-2 small fw-medium">Active</span>
+                                @elseif($form['status'] === 'failed')
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border-0 px-2 py-1.5 rounded-2 small fw-medium">Failed</span>
+                                @elseif($form['status'] === 'archived')
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border-0 px-2 py-1.5 rounded-2 small fw-medium">Archived</span>
+                                @else
+                                    <span class="badge bg-info bg-opacity-10 text-info border-0 px-2 py-1.5 rounded-2 small fw-medium">Draft</span>
+                                @endif
                             </td>
                             <td class="text-center">
                                 <span class="fw-semibold">{{ $form['submissions_count'] }}</span>
@@ -120,15 +132,21 @@
                             </td>
                             <td class="pe-4 text-end">
                                 <div class="d-flex justify-content-end align-items-center">
-                                    <a href="{{ route('forms.edit', $form['id']) }}" class="btn btn-sm btn-outline-custom me-2" title="Edit Form">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </a>
-                                    <a href="{{ route('forms.submissions.index', $form['id']) }}" class="btn btn-sm btn-outline-custom me-2" title="Submissions">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <button class="btn btn-sm btn-outline-custom me-2" onclick="shareFormMock('{{ $form['title'] }}', '{{ $form['public_url'] }}')" title="Share">
-                                        <i class="bi bi-share"></i>
-                                    </button>
+                                    @if($form['status'] === 'generating')
+                                        <button class="btn btn-sm btn-outline-custom me-2" disabled title="Generating..."><i class="bi bi-pencil-square"></i></button>
+                                        <button class="btn btn-sm btn-outline-custom me-2" disabled title="Generating..."><i class="bi bi-eye"></i></button>
+                                        <button class="btn btn-sm btn-outline-custom me-2" disabled title="Generating..."><i class="bi bi-share"></i></button>
+                                    @else
+                                        <a href="{{ route('forms.edit', $form['id']) }}" class="btn btn-sm btn-outline-custom me-2" title="Edit Form">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <a href="{{ route('forms.submissions.index', $form['id']) }}" class="btn btn-sm btn-outline-custom me-2" title="Submissions">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-outline-custom me-2" onclick="shareFormMock('{{ $form['title'] }}', '{{ $form['public_url'] }}')" title="Share">
+                                            <i class="bi bi-share"></i>
+                                        </button>
+                                    @endif
                                     
                                     <form id="delete-form-{{ $form['id'] }}" action="{{ route('forms.destroy', $form['id']) }}" method="POST" class="d-inline">
                                         @csrf
@@ -207,20 +225,23 @@
 
                     <!-- AI Panel -->
                     <div class="tab-pane fade" id="ai-form-panel" role="tabpanel" aria-labelledby="ai-tab">
-                        <div class="text-center py-2">
-                            <div class="text-muted mb-2">
-                                <i class="bi bi-stars text-indigo" style="font-size: 2rem;"></i>
+                        <form method="POST" action="{{ route('forms.generate') }}" class="needs-validation" novalidate>
+                            @csrf
+                            <div class="text-center py-2">
+                                <div class="text-muted mb-2">
+                                    <i class="bi bi-stars text-indigo" style="font-size: 2rem;"></i>
+                                </div>
+                                <h6 class="fw-bold mb-1">AI Form Generation</h6>
+                                <p class="text-secondary small mb-3">Describe the form you want, and the AI will build the database schema in the background.</p>
+                                <div class="mb-3 text-start">
+                                    <label for="ai-prompt" class="form-label small fw-semibold text-secondary">Prompt Description</label>
+                                    <textarea class="form-control" id="ai-prompt" name="prompt" rows="3" placeholder="e.g., Create internship application with education history, skills, and resume upload." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary-gradient w-100 py-2">
+                                    <i class="bi bi-cpu-fill me-1"></i> Generate Form with AI
+                                </button>
                             </div>
-                            <h6 class="fw-bold mb-1">AI Form Generation</h6>
-                            <p class="text-secondary small mb-3">Tell the AI what form to generate and it will build the schema.</p>
-                            <div class="mb-3 text-start">
-                                <label for="ai-prompt-mock" class="form-label small fw-semibold text-secondary">Prompt Description</label>
-                                <textarea class="form-control" id="ai-prompt-mock" rows="2" placeholder="e.g., Create internship application with education history, skills, and resume upload." disabled></textarea>
-                            </div>
-                            <button type="button" class="btn btn-primary-gradient w-100 py-2" onclick="window.showToast('AI Generation', 'AI generation will be active in Module 11.')" disabled>
-                                Generate Form with AI
-                            </button>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
