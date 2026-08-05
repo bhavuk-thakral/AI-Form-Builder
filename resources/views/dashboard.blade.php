@@ -138,6 +138,7 @@
                                     @if($form['status'] === 'generating')
                                         <button class="btn btn-sm btn-outline-custom me-2" disabled title="Generating..."><i class="bi bi-pencil-square"></i></button>
                                         <button class="btn btn-sm btn-outline-custom me-2" disabled title="Generating..."><i class="bi bi-eye"></i></button>
+                                        <button class="btn btn-sm btn-outline-custom me-2" disabled title="Generating..."><i class="bi bi-graph-up"></i></button>
                                         <button class="btn btn-sm btn-outline-custom me-2" disabled title="Generating..."><i class="bi bi-share"></i></button>
                                     @else
                                         <a href="{{ route('forms.edit', $form['id']) }}" class="btn btn-sm btn-outline-custom me-2" title="Edit Form">
@@ -145,6 +146,9 @@
                                         </a>
                                         <a href="{{ route('forms.submissions.index', $form['id']) }}" class="btn btn-sm btn-outline-custom me-2" title="Submissions">
                                             <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ route('forms.analytics', $form['id']) }}" class="btn btn-sm btn-outline-custom me-2" title="Analytics">
+                                            <i class="bi bi-graph-up"></i>
                                         </a>
                                         <button class="btn btn-sm btn-outline-custom me-2" onclick="shareFormMock('{{ $form['title'] }}', '{{ $form['public_url'] }}')" title="Share">
                                             <i class="bi bi-share"></i>

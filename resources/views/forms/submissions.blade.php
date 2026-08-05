@@ -5,14 +5,24 @@
 
 @section('content')
 <div class="container-fluid px-0">
-    <!-- Action Bar -->
-    <div class="d-flex align-items-center mb-4">
-        <a href="{{ route('dashboard') }}" class="btn btn-outline-custom me-3 py-2">
-            <i class="bi bi-arrow-left"></i> Back
-        </a>
-        <div>
-            <h4 class="fw-bold mb-1">{{ $form->title }}</h4>
-            <span class="text-muted small"><i class="bi bi-file-earmark-spreadsheet me-1"></i>Total Responses: {{ $submissions->total() }}</span>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-3 mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{{ route('dashboard') }}" class="btn btn-outline-custom me-3 py-2">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+            <div>
+                <h4 class="fw-bold mb-1">{{ $form->title }}</h4>
+                <span class="text-muted small"><i class="bi bi-file-earmark-spreadsheet me-1"></i>Total Responses: {{ $submissions->total() }}</span>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <a href="{{ route('forms.analytics', $form->id) }}" class="btn btn-outline-custom py-2 px-3 shadow-sm rounded-3">
+                <i class="bi bi-graph-up me-1"></i> View Analytics
+            </a>
+            <a href="{{ route('forms.edit', $form->id) }}" class="btn btn-outline-custom py-2 px-3 shadow-sm rounded-3">
+                <i class="bi bi-pencil-square me-1"></i> Edit Builder
+            </a>
         </div>
     </div>
 

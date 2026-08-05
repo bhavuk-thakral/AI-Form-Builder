@@ -169,4 +169,77 @@ class FormSubmissionController extends Controller
 
         return response()->stream($callback, 200, $responseHeaders);
     }
+
+    /**
+     * Compile and display detailed metrics and visual choice analytics for a form.
+     */
+    public function analytics(Form $form)
+    {
+        // Enforce form ownership
+        if ($form->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $views = $form->views_count;
+        $submissionsCount = $form->submissions()->count();
+        $conversionRate = $views > 0 ? round(($submissionsCount / $views) * 100, 1) : 0;
+        $avgDuration = round($form->submissions()->avg('duration_seconds') ?? 0);
+
+        // Submissions trend for the last 7 days
+        $trendLabels = [];
+        $trendData = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $trendLabels[] = $date->format('M d');
+            $trendData[] = $form->submissions()->whereDate('created_at', $date->format('Y-m-d'))->count();
+        }
+
+        // Choice answers analytics (dropdown, radio, checkbox, rating)
+        $choiceFieldsAnalytics = [];
+        $choiceFields = array_filter($form->schema['fields'] ?? [], function ($field) {
+            return in_array($field['type'] ?? '', ['dropdown', 'radio', 'checkbox', 'rating']);
+        });
+
+        foreach ($choiceFields as $field) {
+            $key = $field['key'];
+            $distribution = [];
+
+            // Compile answers distribution
+            $answers = \DB::table('submission_answers')
+                ->join('submissions', 'submission_answers.submission_id', '=', 'submissions.id')
+                ->where('submissions.form_id', $form->id)
+                ->where('submission_answers.field_key', $key)
+                ->pluck('submission_answers.answer_value');
+
+            foreach ($answers as $ansVal) {
+                if ($field['type'] === 'checkbox') {
+                    $decoded = json_decode($ansVal, true);
+                    if (is_array($decoded)) {
+                        foreach ($decoded as $v) {
+                            $distribution[$v] = ($distribution[$v] ?? 0) + 1;
+                        }
+                    }
+                } else {
+                    $distribution[$ansVal] = ($distribution[$ansVal] ?? 0) + 1;
+                }
+            }
+
+            $choiceFieldsAnalytics[$key] = [
+                'label' => $field['label'] ?? $key,
+                'type' => $field['type'],
+                'data' => $distribution
+            ];
+        }
+
+        return view('forms.analytics', compact(
+            'form',
+            'views',
+            'submissionsCount',
+            'conversionRate',
+            'avgDuration',
+            'trendLabels',
+            'trendData',
+            'choiceFieldsAnalytics'
+        ));
+    }
 }
