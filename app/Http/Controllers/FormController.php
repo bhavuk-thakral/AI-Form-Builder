@@ -227,4 +227,162 @@ class FormController extends Controller
         return redirect()->route('forms.edit', $form->id)
             ->with('toast_success', "Form successfully restored back to Version #{$version->version_number}!");
     }
+
+    /**
+     * Create a new form pre-populated from a template.
+     */
+    public function createFromTemplate(Request $request)
+    {
+        $request->validate([
+            'template_key' => ['required', 'string', 'in:contact,feedback,event'],
+        ]);
+
+        $templates = [
+            'contact' => [
+                'title' => 'Contact Us Support Form',
+                'description' => 'Collect support tickets, queries, and feedback from your site visitors.',
+                'fields' => [
+                    [
+                        'id' => 'f_contact_1',
+                        'key' => 'contact_name',
+                        'type' => 'text',
+                        'label' => 'Full Name',
+                        'placeholder' => 'Enter your name...',
+                        'required' => true,
+                    ],
+                    [
+                        'id' => 'f_contact_2',
+                        'key' => 'contact_email',
+                        'type' => 'email',
+                        'label' => 'Email Address',
+                        'placeholder' => 'e.g., you@domain.com',
+                        'required' => true,
+                        'validations' => ['email'],
+                    ],
+                    [
+                        'id' => 'f_contact_3',
+                        'key' => 'contact_message',
+                        'type' => 'textarea',
+                        'label' => 'Message / Question',
+                        'placeholder' => 'How can we help you today?',
+                        'required' => true,
+                    ]
+                ]
+            ],
+            'feedback' => [
+                'title' => 'Customer Feedback Survey',
+                'description' => 'Gather insights on client satisfaction and service ratings.',
+                'fields' => [
+                    [
+                        'id' => 'f_feed_1',
+                        'key' => 'feedback_name',
+                        'type' => 'text',
+                        'label' => 'Full Name',
+                        'placeholder' => 'Anonymous (Optional)',
+                        'required' => false,
+                    ],
+                    [
+                        'id' => 'f_feed_2',
+                        'key' => 'satisfaction_rating',
+                        'type' => 'rating',
+                        'label' => 'Overall Satisfaction',
+                        'required' => true,
+                        'default_value' => '5',
+                    ],
+                    [
+                        'id' => 'f_feed_3',
+                        'key' => 'satisfaction_comments',
+                        'type' => 'textarea',
+                        'label' => 'Additional Comments',
+                        'placeholder' => 'What can we improve?',
+                        'required' => false,
+                    ]
+                ]
+            ],
+            'event' => [
+                'title' => 'Annual Summit Registration Form',
+                'description' => 'Reserve guest list spots, gather contact data, and note preferences.',
+                'fields' => [
+                    [
+                        'id' => 'f_evt_1',
+                        'key' => 'registrant_name',
+                        'type' => 'text',
+                        'label' => 'Full Name',
+                        'placeholder' => 'Enter your full name...',
+                        'required' => true,
+                    ],
+                    [
+                        'id' => 'f_evt_2',
+                        'key' => 'registrant_email',
+                        'type' => 'email',
+                        'label' => 'Email Address',
+                        'placeholder' => 'e.g., applicant@example.com',
+                        'required' => true,
+                        'validations' => ['email'],
+                    ],
+                    [
+                        'id' => 'f_evt_3',
+                        'key' => 'meal_preference',
+                        'type' => 'dropdown',
+                        'label' => 'Meal Preference',
+                        'placeholder' => 'Select preference...',
+                        'required' => true,
+                        'options' => ['Vegetarian', 'Vegan', 'Non-Vegetarian'],
+                    ],
+                    [
+                        'id' => 'f_evt_4',
+                        'key' => 'sessions_attending',
+                        'type' => 'checkbox',
+                        'label' => 'Select Sessions to Attend',
+                        'required' => false,
+                        'options' => [
+                            'Keynote Address', 
+                            'Backend Architecture Workshop', 
+                            'AI & Machine Learning Panel'
+                        ],
+                    ]
+                ]
+            ]
+        ];
+
+        $key = $request->input('template_key');
+        $tpl = $templates[$key];
+
+        $form = \DB::transaction(function () use ($tpl) {
+            $schema = [
+                'title' => $tpl['title'],
+                'description' => $tpl['description'],
+                'fields' => $tpl['fields']
+            ];
+
+            $form = Form::create([
+                'user_id' => Auth::id(),
+                'title' => $tpl['title'],
+                'description' => $tpl['description'],
+                'status' => 'draft',
+                'schema' => $schema,
+                'share_token' => Str::random(32),
+            ]);
+
+            FormVersion::create([
+                'form_id' => $form->id,
+                'version_number' => 1,
+                'schema' => $schema,
+                'created_by' => Auth::id(),
+            ]);
+
+            \App\Models\ActivityLog::create([
+                'user_id' => Auth::id(),
+                'form_id' => $form->id,
+                'action' => 'created',
+                'description' => "Created form from template: {$tpl['title']}.",
+                'ip_address' => request()->ip() ?? '127.0.0.1',
+            ]);
+
+            return $form;
+        });
+
+        return redirect()->route('forms.edit', $form->id)
+            ->with('toast_success', "Form successfully created from '{$tpl['title']}' template!");
+    }
 }

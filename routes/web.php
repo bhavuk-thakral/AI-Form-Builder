@@ -26,6 +26,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/forms/generate', [FormController::class, 'generate'])->name('forms.generate');
     Route::post('/forms/import', [FormController::class, 'import'])->name('forms.import');
+    Route::post('/forms/template', [FormController::class, 'createFromTemplate'])->name('forms.template');
     Route::post('/forms/{form}/ai-edit', [FormController::class, 'aiEdit'])->name('forms.ai-edit');
     Route::post('/forms/{form}/versions/{version}/restore', [FormController::class, 'restoreVersion'])->name('forms.restore-version');
     Route::resource('forms', FormController::class);

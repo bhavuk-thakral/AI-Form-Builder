@@ -72,6 +72,9 @@
         <button class="btn btn-outline-custom shadow-sm d-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#importFormModal">
             <i class="bi bi-file-earmark-arrow-up me-2"></i> Import
         </button>
+        <button class="btn btn-outline-custom shadow-sm d-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#selectTemplateModal">
+            <i class="bi bi-layout-text-window me-2"></i> Templates
+        </button>
         <button class="btn btn-gradient-primary shadow-sm d-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#createFormModal">
             <i class="bi bi-plus-circle me-2"></i> Create Form
         </button>
@@ -303,6 +306,68 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Select Preset Template -->
+<div class="modal fade" id="selectTemplateModal" tabindex="-1" aria-labelledby="selectTemplateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow bg-white">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <h5 class="modal-title fw-bold text-indigo" id="selectTemplateModalLabel"><i class="bi bi-layout-text-window me-2"></i>Choose a Form Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 py-4">
+                <p class="text-muted small mb-4">Start with one of our curated form designs. You will be redirected immediately to customize fields.</p>
+                
+                <div class="row g-3">
+                    <!-- Contact Form -->
+                    <div class="col-12 col-md-4">
+                        <div class="card h-100 border rounded-4 p-4 text-center hover-shadow transition bg-white" style="cursor: pointer;" onclick="document.getElementById('tpl-contact-form').submit();">
+                            <form id="tpl-contact-form" method="POST" action="{{ route('forms.template') }}">
+                                @csrf
+                                <input type="hidden" name="template_key" value="contact">
+                                <div class="bg-indigo-subtle text-indigo rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                    <i class="bi bi-envelope-check fs-4"></i>
+                                </div>
+                                <h6 class="fw-bold mb-2">Contact Support</h6>
+                                <p class="text-secondary small mb-0">Collect user queries, support requests, and messages.</p>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Feedback Form -->
+                    <div class="col-12 col-md-4">
+                        <div class="card h-100 border rounded-4 p-4 text-center hover-shadow transition bg-white" style="cursor: pointer;" onclick="document.getElementById('tpl-feedback-form').submit();">
+                            <form id="tpl-feedback-form" method="POST" action="{{ route('forms.template') }}">
+                                @csrf
+                                <input type="hidden" name="template_key" value="feedback">
+                                <div class="bg-warning-subtle text-warning rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                    <i class="bi bi-star-fill fs-4"></i>
+                                </div>
+                                <h6 class="fw-bold mb-2">Customer Feedback</h6>
+                                <p class="text-secondary small mb-0">Gather service metrics, star ratings, and satisfaction suggestions.</p>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Event Registration Form -->
+                    <div class="col-12 col-md-4">
+                        <div class="card h-100 border rounded-4 p-4 text-center hover-shadow transition bg-white" style="cursor: pointer;" onclick="document.getElementById('tpl-event-form').submit();">
+                            <form id="tpl-event-form" method="POST" action="{{ route('forms.template') }}">
+                                @csrf
+                                <input type="hidden" name="template_key" value="event">
+                                <div class="bg-success-subtle text-success rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                    <i class="bi bi-calendar-event fs-4"></i>
+                                </div>
+                                <h6 class="fw-bold mb-2">Event Registration</h6>
+                                <p class="text-secondary small mb-0">Collect participant data, preferences, and RSVP answers.</p>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
