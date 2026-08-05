@@ -49,7 +49,7 @@ class DashboardController extends Controller
                     ? count($form->schema['fields']) 
                     : 0,
                 'submissions_count' => $form->submissions()->count(),
-                'public_url' => url("/forms/{$form->share_token}"),
+                'public_url' => route('forms.public.show', $form->share_token),
                 'updated_at' => $form->updated_at->diffForHumans(),
                 'share_token' => $form->share_token,
             ];

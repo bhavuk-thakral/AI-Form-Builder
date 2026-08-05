@@ -25,3 +25,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('forms', FormController::class);
 });
+
+use App\Http\Controllers\PublicFormController;
+
+Route::get('/p/{share_token}', [PublicFormController::class, 'show'])->name('forms.public.show');
+Route::post('/p/{share_token}/submit', [PublicFormController::class, 'submit'])->name('forms.public.submit');
