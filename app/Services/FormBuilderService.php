@@ -137,4 +137,81 @@ class FormBuilderService
             'views_count' => $form->views_count + 1
         ]);
     }
+
+    /**
+     * Generate Laravel validation rules dynamically from JSON schema.
+     */
+    public function generateValidationRules(Form $form): array
+    {
+        $rules = [];
+        $schema = $form->schema;
+
+        if (!$schema || !isset($schema['fields']) || !is_array($schema['fields'])) {
+            return $rules;
+        }
+
+        foreach ($schema['fields'] as $field) {
+            $key = $field['key'] ?? null;
+            if (!$key || $field['type'] === 'section') {
+                continue;
+            }
+
+            $fieldRules = [];
+
+            // Required validation
+            if (!empty($field['required'])) {
+                $fieldRules[] = 'required';
+            } else {
+                $fieldRules[] = 'nullable';
+            }
+
+            // Type validation
+            switch ($field['type']) {
+                case 'email':
+                    $fieldRules[] = 'email';
+                    break;
+                case 'number':
+                    $fieldRules[] = 'numeric';
+                    break;
+                case 'date':
+                    $fieldRules[] = 'date';
+                    break;
+                case 'file':
+                    $fieldRules[] = 'file';
+                    break;
+                case 'rating':
+                    $fieldRules[] = 'integer';
+                    $fieldRules[] = 'between:1,5';
+                    break;
+                default:
+                    $fieldRules[] = 'string';
+                    break;
+            }
+
+            // Custom validations listed in the field
+            if (isset($field['validations']) && is_array($field['validations'])) {
+                foreach ($field['validations'] as $valRule) {
+                    $fieldRules[] = $valRule;
+                }
+            }
+
+            // Options checking for dropdown/radio
+            if (in_array($field['type'], ['dropdown', 'radio']) && !empty($field['options'])) {
+                $fieldRules[] = \Illuminate\Validation\Rule::in($field['options']);
+            }
+
+            // Checkbox validation (accept array of values, each in options)
+            if ($field['type'] === 'checkbox') {
+                $rules[$key] = !empty($field['required']) ? ['required', 'array'] : ['nullable', 'array'];
+                if (!empty($field['options'])) {
+                    $rules[$key . '.*'] = [\Illuminate\Validation\Rule::in($field['options'])];
+                }
+                continue;
+            }
+
+            $rules[$key] = $fieldRules;
+        }
+
+        return $rules;
+    }
 }

@@ -65,11 +65,17 @@ class FormController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $validated = $request->validate([
+        $data = $request->all();
+        if ($request->has('schema') && is_string($request->input('schema'))) {
+            $data['schema'] = json_decode($request->input('schema'), true);
+        }
+
+        $validated = validator($data, [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
             'status' => ['required', 'string', 'in:draft,active,archived'],
-        ]);
+            'schema' => ['nullable', 'array'],
+        ])->validate();
 
         $this->formBuilderService->updateForm($form, $validated, Auth::id());
 
