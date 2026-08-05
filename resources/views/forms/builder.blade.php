@@ -94,6 +94,25 @@
 @endsection
 
 @section('content')
+@if($form->status === 'generating')
+    <div class="container-fluid px-0">
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center my-5 bg-white">
+            <div class="py-5">
+                <div class="spinner-border text-indigo mb-4" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h4 class="fw-bold text-indigo">AI Co-pilot is updating your form...</h4>
+                <p class="text-secondary small">Compiling layout details and committing database versions. The canvas will refresh shortly.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        setTimeout(() => {
+            window.location.reload();
+        }, 2500);
+    </script>
+@else
 <div class="container-fluid px-0">
     <!-- Builder Header Action Bar -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-3 mb-4">
@@ -151,6 +170,21 @@
 
                 <!-- Right Control Panel: Toolbox & Form Settings -->
                 <div class="col-12 col-xl-4">
+                    <!-- AI Co-pilot Card -->
+                    <div class="card border-0 shadow-sm rounded-4 mb-4 p-4 text-white" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border: none;">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-stars me-2"></i>AI Co-pilot Editor</h6>
+                        <p class="small text-white-50 mb-3" style="font-size: 0.82rem; line-height: 1.4;">Instruct the AI to modify fields (add, modify, delete, reorder, change options).</p>
+                        <form method="POST" action="{{ route('forms.ai-edit', $form->id) }}">
+                            @csrf
+                            <div class="mb-3">
+                                <textarea class="form-control form-control-sm border-0 shadow-sm text-white" name="instruction" rows="2" placeholder="e.g., Add a phone number field after email" style="background-color: rgba(255,255,255,0.15); border-radius: 8px; font-size: 0.85rem;" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-light btn-sm w-100 fw-bold text-indigo" style="border-radius: 8px; font-size: 0.85rem;">
+                                Apply AI Instruction
+                            </button>
+                        </form>
+                    </div>
+
                     <!-- Form Metadata Card -->
                     <div class="card border-0 shadow-sm rounded-4 mb-4 p-4">
                         <h6 class="fw-bold mb-3 text-indigo"><i class="bi bi-sliders me-2"></i>General settings</h6>
@@ -853,4 +887,5 @@
         document.getElementById('save-form-schema').submit();
     }
 </script>
+@endif
 @endsection

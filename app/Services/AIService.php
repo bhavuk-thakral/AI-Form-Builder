@@ -343,4 +343,130 @@ Ensure all keys are unique. Do not wrap JSON in markdown block. Return raw JSON 
             'latency' => $latency,
         ];
     }
+
+    /**
+     * Edit form schema using natural language instructions.
+     */
+    public function editFormSchema(array $currentSchema, string $instruction, int $retryCount = 0): array
+    {
+        $startTime = microtime(true);
+
+        // If no API key is provided, execute mock adjustments for testing
+        if (empty($this->apiKey) || $this->apiKey === 'placeholder') {
+            $latency = round((microtime(true) - $startTime) * 1000) + 400; // artificial delay
+
+            $fields = $currentSchema['fields'] ?? [];
+            $instructionLower = strtolower($instruction);
+
+            if (str_contains($instructionLower, 'phone')) {
+                // Add phone field
+                $fields[] = [
+                    'key' => 'phone_number',
+                    'type' => 'phone',
+                    'label' => 'Phone Number',
+                    'placeholder' => '123-456-7890',
+                    'help_text' => 'Primary contact number.',
+                    'required' => false,
+                    'validations' => ['string'],
+                ];
+            } elseif (str_contains($instructionLower, 'required') || str_contains($instructionLower, 'must')) {
+                // Make all fields required
+                foreach ($fields as &$f) {
+                    $f['required'] = true;
+                }
+            } else {
+                // Add a generic comments feedback field
+                $fields[] = [
+                    'key' => 'ai_notes',
+                    'type' => 'textarea',
+                    'label' => 'AI Notes Comments',
+                    'placeholder' => 'Enter feedback details...',
+                    'required' => false,
+                    'validations' => [],
+                ];
+            }
+
+            $currentSchema['fields'] = $fields;
+
+            return [
+                'success' => true,
+                'schema' => $currentSchema,
+                'model' => 'gpt-4o-mini-mocked',
+                'prompt_tokens' => 180,
+                'completion_tokens' => 300,
+                'total_tokens' => 480,
+                'latency' => $latency,
+            ];
+        }
+
+        $systemPrompt = "You are an AI Form Editor. You take the current JSON Form Schema and edit it according to the user instruction.
+You must output ONLY a valid JSON object matching the exact structure of the input, incorporating the edits.
+Do not wrap your response in markdown code blocks. Return raw JSON text only.";
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Content-Type' => 'application/json',
+            ])->timeout(30)->post('https://api.openai.com/v1/chat/completions', [
+                'model' => $this->model,
+                'messages' => [
+                    ['role' => 'system', 'content' => $systemPrompt],
+                    ['role' => 'user', 'content' => "Current Schema: " . json_encode($currentSchema) . "\nInstruction: " . $instruction]
+                ],
+                'response_format' => ['type' => 'json_object'],
+                'temperature' => 0.5,
+            ]);
+
+            $latency = round((microtime(true) - $startTime) * 1000);
+
+            if (!$response->successful()) {
+                throw new \Exception("OpenAI API returned status " . $response->status() . ": " . $response->body());
+            }
+
+            $result = $response->json();
+            $rawJson = $result['choices'][0]['message']['content'] ?? '';
+
+            // Clean json
+            $rawJson = $this->cleanJsonString($rawJson);
+
+            // Parse and validate
+            $schema = json_decode($rawJson, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $repairedJson = $this->repairMalformedJson($rawJson);
+                $schema = json_decode($repairedJson, true);
+
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    throw new \Exception("JSON parsing failed: " . json_last_error_msg());
+                }
+            }
+
+            $this->validateSchemaFormat($schema);
+
+            $usage = $result['usage'] ?? [];
+            return [
+                'success' => true,
+                'schema' => $schema,
+                'model' => $this->model,
+                'prompt_tokens' => $usage['prompt_tokens'] ?? 0,
+                'completion_tokens' => $usage['completion_tokens'] ?? 0,
+                'total_tokens' => $usage['total_tokens'] ?? 0,
+                'latency' => $latency,
+            ];
+
+        } catch (\Exception $e) {
+            Log::warning("AI Editing attempt failed: " . $e->getMessage());
+
+            if ($retryCount < 2) {
+                Log::info("Retrying AI Form Editing... Attempt: " . ($retryCount + 1));
+                return $this->editFormSchema($currentSchema, $instruction, $retryCount + 1);
+            }
+
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'latency' => round((microtime(true) - $startTime) * 1000),
+            ];
+        }
+    }
 }

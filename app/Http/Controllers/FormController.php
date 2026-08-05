@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Form;
 use App\Services\FormBuilderService;
 use App\Jobs\GenerateFormFromPromptJob;
+use App\Jobs\EditFormWithAIJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -71,6 +72,32 @@ class FormController extends Controller
 
         return redirect()->route('dashboard')
             ->with('toast_success', "AI Form generation started! The form is compiling in the background and will show up shortly.");
+    }
+
+    /**
+     * Dispatch background queue job to edit the form with AI instructions.
+     */
+    public function aiEdit(Request $request, Form $form)
+    {
+        // Enforce form ownership
+        if ($form->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'instruction' => ['required', 'string', 'min:5', 'max:1000'],
+        ]);
+
+        // Set status to generating so the workspace locks with loading indicators
+        $form->update([
+            'status' => 'generating',
+        ]);
+
+        // Dispatch background queue job
+        EditFormWithAIJob::dispatch($form, $request->input('instruction'), Auth::id());
+
+        return redirect()->route('forms.edit', $form->id)
+            ->with('toast_success', 'AI Co-pilot is updating your form in the background. The canvas will reload shortly.');
     }
 
     /**

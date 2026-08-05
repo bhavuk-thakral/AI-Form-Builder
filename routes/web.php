@@ -25,6 +25,7 @@ Route::middleware('auth')->group(function () {
     
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/forms/generate', [FormController::class, 'generate'])->name('forms.generate');
+    Route::post('/forms/{form}/ai-edit', [FormController::class, 'aiEdit'])->name('forms.ai-edit');
     Route::resource('forms', FormController::class);
     
     Route::get('/forms/{form}/submissions', [FormSubmissionController::class, 'index'])->name('forms.submissions.index');
