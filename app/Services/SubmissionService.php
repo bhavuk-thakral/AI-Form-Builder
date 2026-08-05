@@ -72,4 +72,25 @@ class SubmissionService
             return $submission;
         });
     }
+
+    /**
+     * Get paginated and filtered submissions list for a form.
+     */
+    public function getSubmissionsForForm(Form $form, ?string $search = null, int $perPage = 10)
+    {
+        $query = $form->submissions()->with(['answers', 'version']);
+
+        if (!empty($search)) {
+            $query->where(function ($subQuery) use ($search) {
+                // Search by answers value
+                $subQuery->whereHas('answers', function ($ansQuery) use ($search) {
+                    $ansQuery->where('answer_value', 'like', "%{$search}%");
+                })
+                // Or search by meta values (IP address)
+                ->orWhere('ip_address', 'like', "%{$search}%");
+            });
+        }
+
+        return $query->latest()->paginate($perPage);
+    }
 }

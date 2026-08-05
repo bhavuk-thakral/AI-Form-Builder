@@ -123,9 +123,9 @@
                                     <a href="{{ route('forms.edit', $form['id']) }}" class="btn btn-sm btn-outline-custom me-2" title="Edit Form">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
-                                    <button class="btn btn-sm btn-outline-custom me-2" onclick="viewSubmissionsMock('{{ $form['title'] }}')" title="Submissions">
+                                    <a href="{{ route('forms.submissions.index', $form['id']) }}" class="btn btn-sm btn-outline-custom me-2" title="Submissions">
                                         <i class="bi bi-eye"></i>
-                                    </button>
+                                    </a>
                                     <button class="btn btn-sm btn-outline-custom me-2" onclick="shareFormMock('{{ $form['title'] }}', '{{ $form['public_url'] }}')" title="Share">
                                         <i class="bi bi-share"></i>
                                     </button>
