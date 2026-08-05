@@ -397,6 +397,14 @@
                     });
                 }
             });
+
+            // Display session toast messages
+            @if(session('toast_success'))
+                window.showToast('Success', "{{ session('toast_success') }}");
+            @endif
+            @if(session('toast_error'))
+                window.showToast('Error', "{{ session('toast_error') }}", true);
+            @endif
         });
     </script>
     @yield('scripts')

@@ -119,19 +119,24 @@
                                 <span class="text-secondary small">{{ $form['updated_at'] }}</span>
                             </td>
                             <td class="pe-4 text-end">
-                                <div class="btn-group">
-                                    <button class="btn btn-sm btn-outline-custom me-2" onclick="editFormMock('{{ $form['title'] }}')" title="Edit Form">
+                                <div class="d-flex justify-content-end align-items-center">
+                                    <a href="{{ route('forms.edit', $form['id']) }}" class="btn btn-sm btn-outline-custom me-2" title="Edit Form">
                                         <i class="bi bi-pencil-square"></i>
-                                    </button>
+                                    </a>
                                     <button class="btn btn-sm btn-outline-custom me-2" onclick="viewSubmissionsMock('{{ $form['title'] }}')" title="Submissions">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                     <button class="btn btn-sm btn-outline-custom me-2" onclick="shareFormMock('{{ $form['title'] }}', '{{ $form['public_url'] }}')" title="Share">
                                         <i class="bi bi-share"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteFormMock('{{ $form['title'] }}')" title="Delete">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                    
+                                    <form id="delete-form-{{ $form['id'] }}" action="{{ route('forms.destroy', $form['id']) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete({{ $form['id'] }}, '{{ addslashes($form['title']) }}')" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -161,28 +166,62 @@
         <div class="modal-content border-0 rounded-4 shadow">
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title fw-bold" id="createFormModalLabel">Create a New Form</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body py-4">
-                <div class="d-grid gap-3">
-                    <button class="btn btn-outline-custom text-start p-3 d-flex align-items-center border-2 border-primary border-opacity-10 hover-border-primary" onclick="createFormOption('manual')" style="border-radius: 16px;">
-                        <div class="rounded-3 bg-primary bg-opacity-10 text-primary p-3 me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                            <i class="bi bi-magic fs-4"></i>
+                <!-- Tabs Nav -->
+                <ul class="nav nav-pills nav-fill mb-4 p-1 bg-light rounded-3" id="createFormTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active rounded-3 small fw-semibold" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual-form-panel" type="button" role="tab" aria-controls="manual-form-panel" aria-selected="true">
+                            <i class="bi bi-magic me-1"></i> Create Manually
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-3 small fw-semibold" id="ai-tab" data-bs-toggle="tab" data-bs-target="#ai-form-panel" type="button" role="tab" aria-controls="ai-form-panel" aria-selected="false">
+                            <i class="bi bi-stars me-1"></i> AI Assistant
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tabs Content -->
+                <div class="tab-content" id="createFormTabsContent">
+                    <!-- Manual Panel -->
+                    <div class="tab-pane fade show active" id="manual-form-panel" role="tabpanel" aria-labelledby="manual-tab">
+                        <form method="POST" action="{{ route('forms.store') }}" class="needs-validation" novalidate>
+                            @csrf
+                            <div class="mb-3">
+                                <label for="manual-title" class="form-label small fw-semibold text-secondary">Form Title</label>
+                                <input type="text" class="form-control" id="manual-title" name="title" placeholder="e.g., Job Application Form" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="manual-desc" class="form-label small fw-semibold text-secondary">Description (Optional)</label>
+                                <textarea class="form-control" id="manual-desc" name="description" rows="2" placeholder="Brief explanation of this form's purpose..."></textarea>
+                            </div>
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-primary-gradient py-2">
+                                    Create Draft Form
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- AI Panel -->
+                    <div class="tab-pane fade" id="ai-form-panel" role="tabpanel" aria-labelledby="ai-tab">
+                        <div class="text-center py-2">
+                            <div class="text-muted mb-2">
+                                <i class="bi bi-stars text-indigo" style="font-size: 2rem;"></i>
+                            </div>
+                            <h6 class="fw-bold mb-1">AI Form Generation</h6>
+                            <p class="text-secondary small mb-3">Tell the AI what form to generate and it will build the schema.</p>
+                            <div class="mb-3 text-start">
+                                <label for="ai-prompt-mock" class="form-label small fw-semibold text-secondary">Prompt Description</label>
+                                <textarea class="form-control" id="ai-prompt-mock" rows="2" placeholder="e.g., Create internship application with education history, skills, and resume upload." disabled></textarea>
+                            </div>
+                            <button type="button" class="btn btn-primary-gradient w-100 py-2" onclick="window.showToast('AI Generation', 'AI generation will be active in Module 11.')" disabled>
+                                Generate Form with AI
+                            </button>
                         </div>
-                        <div>
-                            <h6 class="fw-bold mb-1">Create Manually (Canvas Builder)</h6>
-                            <small class="text-muted text-wrap d-block">Drag & drop fields, toggle settings, and construct JSON schema via a GUI.</small>
-                        </div>
-                    </button>
-                    <button class="btn btn-outline-custom text-start p-3 d-flex align-items-center border-2 border-primary border-opacity-10 hover-border-primary" onclick="createFormOption('ai')" style="border-radius: 16px;">
-                        <div class="rounded-3 bg-purple-light bg-info bg-opacity-10 text-info p-3 me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                            <i class="bi bi-stars fs-4"></i>
-                        </div>
-                        <div>
-                            <h6 class="fw-bold mb-1">Generate with AI Assistant</h6>
-                            <small class="text-muted text-wrap d-block">Enter a prompt (e.g. "internship register application") to auto-generate a form.</small>
-                        </div>
-                    </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -248,8 +287,10 @@
 
 @section('scripts')
 <script>
-    function editFormMock(title) {
-        window.showToast('Edit Form', `Loading canvas builder for form: "${title}"...`);
+    function confirmDelete(id, title) {
+        if (confirm(`Are you sure you want to delete the form "${title}"?`)) {
+            document.getElementById(`delete-form-${id}`).submit();
+        }
     }
 
     function viewSubmissionsMock(title) {
@@ -260,12 +301,6 @@
         document.getElementById('share-public-url').value = url;
         const modal = new bootstrap.Modal(document.getElementById('shareFormModal'));
         modal.show();
-    }
-
-    function deleteFormMock(title) {
-        if (confirm(`Are you sure you want to delete the form "${title}"?`)) {
-            window.showToast('Delete Form', `Form "${title}" deleted successfully.`);
-        }
     }
 
     function copyPublicUrl() {
@@ -282,18 +317,6 @@
             .catch(() => {
                 window.showToast('Failed to copy', 'Please copy it manually.', true);
             });
-    }
-
-    function createFormOption(type) {
-        const modalEl = document.getElementById('createFormModal');
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        if (modal) modal.hide();
-
-        if (type === 'manual') {
-            window.showToast('Canvas Builder', 'Redirecting to drag & drop canvas...');
-        } else if (type === 'ai') {
-            window.showToast('AI Form Generation', 'Opening prompt assistant...');
-        }
     }
 </script>
 @endsection
