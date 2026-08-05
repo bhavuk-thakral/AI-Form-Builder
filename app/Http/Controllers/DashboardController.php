@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Form;
+use App\Models\Submission;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -12,33 +15,45 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        // Mock stats data for testing layout features
+        $userId = Auth::id();
+
+        // Retrieve user forms
+        $formsCollection = Form::where('user_id', $userId)->latest()->get();
+
+        // Calculate statistics
+        $totalForms = $formsCollection->count();
+        
+        $formIds = $formsCollection->pluck('id');
+        $totalSubmissions = Submission::whereIn('form_id', $formIds)->count();
+        
+        $aiGenerated = ActivityLog::where('user_id', $userId)
+            ->where('action', 'ai_generated')
+            ->count();
+            
+        $totalViews = $formsCollection->sum('views_count');
+        $conversionRate = $totalViews > 0 ? round(($totalSubmissions / $totalViews) * 100) : 0;
+
         $stats = [
-            'total_forms' => 2,
-            'total_submissions' => 18,
-            'ai_generated' => 1,
-            'conversion_rate' => 85,
+            'total_forms' => $totalForms,
+            'total_submissions' => $totalSubmissions,
+            'ai_generated' => $aiGenerated,
+            'conversion_rate' => $conversionRate,
         ];
 
-        // Mock forms data
-        $forms = [
-            [
-                'id' => 1,
-                'title' => 'Internship Application Form',
-                'fields_count' => 12,
-                'submissions_count' => 15,
-                'public_url' => url('/forms/internship-application'),
-                'updated_at' => '2 hours ago',
-            ],
-            [
-                'id' => 2,
-                'title' => 'Customer Feedback Survey',
-                'fields_count' => 5,
-                'submissions_count' => 3,
-                'public_url' => url('/forms/customer-feedback'),
-                'updated_at' => '1 day ago',
-            ],
-        ];
+        // Format forms list for view
+        $forms = $formsCollection->map(function ($form) {
+            return [
+                'id' => $form->id,
+                'title' => $form->title,
+                'fields_count' => is_array($form->schema) && isset($form->schema['fields']) 
+                    ? count($form->schema['fields']) 
+                    : 0,
+                'submissions_count' => $form->submissions()->count(),
+                'public_url' => url("/forms/{$form->share_token}"),
+                'updated_at' => $form->updated_at->diffForHumans(),
+                'share_token' => $form->share_token,
+            ];
+        });
 
         return view('dashboard', compact('stats', 'forms'));
     }

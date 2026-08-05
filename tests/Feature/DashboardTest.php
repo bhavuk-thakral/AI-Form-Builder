@@ -28,6 +28,23 @@ class DashboardTest extends TestCase
     {
         $user = User::factory()->create();
 
+        // Create forms for this user
+        \App\Models\Form::create([
+            'user_id' => $user->id,
+            'title' => 'Internship Application Form',
+            'status' => 'active',
+            'schema' => ['fields' => []],
+            'share_token' => 'token-internship',
+        ]);
+
+        \App\Models\Form::create([
+            'user_id' => $user->id,
+            'title' => 'Customer Feedback Survey',
+            'status' => 'active',
+            'schema' => ['fields' => []],
+            'share_token' => 'token-feedback',
+        ]);
+
         $response = $this->actingAs($user)->get('/dashboard');
 
         $response->assertStatus(200);
