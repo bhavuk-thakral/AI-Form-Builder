@@ -10,16 +10,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
+use App\Services\DocumentImportService;
+
 class FormController extends Controller
 {
     protected $formBuilderService;
+    protected $documentImportService;
 
     /**
-     * Inject FormBuilderService.
+     * Inject services.
      */
-    public function __construct(FormBuilderService $formBuilderService)
+    public function __construct(FormBuilderService $formBuilderService, DocumentImportService $documentImportService)
     {
         $this->formBuilderService = $formBuilderService;
+        $this->documentImportService = $documentImportService;
     }
 
     /**
@@ -154,5 +158,32 @@ class FormController extends Controller
 
         return redirect()->route('dashboard')
             ->with('toast_success', "Form '{$title}' deleted successfully.");
+    }
+
+    /**
+     * Import form layouts from file attachments (DOCX/XLSX).
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'import_file' => ['required', 'file', 'max:5120'], // max 5MB
+        ]);
+
+        $file = $request->file('import_file');
+        $extension = strtolower($file->getClientOriginalExtension());
+        if (!in_array($extension, ['docx', 'xlsx'])) {
+            return redirect()->back()
+                ->with('toast_error', "Failed to import form document: Invalid file format. Only DOCX and XLSX documents are supported.");
+        }
+
+        try {
+            $form = $this->documentImportService->importFormFromFile($file, Auth::id());
+
+            return redirect()->route('forms.edit', $form->id)
+                ->with('toast_success', "Form '{$form->title}' imported successfully! You can now customize details.");
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('toast_error', "Failed to import form document: " . $e->getMessage());
+        }
     }
 }

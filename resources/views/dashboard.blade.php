@@ -291,15 +291,18 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body py-4">
-                <div class="border-2 border-dashed border-primary border-opacity-20 rounded-4 p-4 text-center bg-light bg-opacity-50">
-                    <i class="bi bi-cloud-arrow-up fs-1 text-indigo mb-3"></i>
-                    <h6 class="fw-bold mb-2">Upload DOCX or XLSX files</h6>
-                    <p class="text-muted small mb-3">Docx headings become sections, Xlsx sheets create rows mapping.</p>
-                    <input type="file" id="import-file-uploader" class="d-none" accept=".docx,.xlsx">
-                    <button class="btn btn-outline-custom btn-sm shadow-sm" onclick="document.getElementById('import-file-uploader').click()">
-                        Choose File
-                    </button>
-                </div>
+                <form method="POST" action="{{ route('forms.import') }}" enctype="multipart/form-data">
+                    @csrf
+                    <div class="border-2 border-dashed border-primary border-opacity-20 rounded-4 p-4 text-center bg-light bg-opacity-50">
+                        <i class="bi bi-cloud-arrow-up fs-1 text-indigo mb-3"></i>
+                        <h6 class="fw-bold mb-2">Upload DOCX or XLSX files</h6>
+                        <p class="text-muted small mb-3">DOCX headings become sections and questions become fields. XLSX columns map to form fields.</p>
+                        <input type="file" id="import_file" name="import_file" class="form-control mb-3" accept=".docx,.xlsx" required>
+                        <button type="submit" class="btn btn-gradient-primary w-100 py-2">
+                            <i class="bi bi-file-earmark-arrow-up me-1"></i> Upload & Import Form
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
