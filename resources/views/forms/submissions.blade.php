@@ -36,9 +36,9 @@
                         Clear
                     </a>
                 @endif
-                <button type="button" class="btn btn-gradient-primary w-50 justify-content-center d-flex align-items-center" onclick="window.showToast('CSV Export', 'CSV Export will be active in Module 10.')">
+                <a href="{{ route('forms.submissions.export', ['form' => $form->id, 'search' => $search]) }}" class="btn btn-gradient-primary w-50 justify-content-center d-flex align-items-center">
                     <i class="bi bi-download me-1"></i> Export
-                </button>
+                </a>
             </div>
         </form>
     </div>

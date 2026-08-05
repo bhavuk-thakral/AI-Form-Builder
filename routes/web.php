@@ -27,6 +27,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('forms', FormController::class);
     
     Route::get('/forms/{form}/submissions', [FormSubmissionController::class, 'index'])->name('forms.submissions.index');
+    Route::get('/forms/{form}/submissions/export', [FormSubmissionController::class, 'export'])->name('forms.submissions.export');
     Route::get('/submissions/{submission}', [FormSubmissionController::class, 'show'])->name('submissions.show');
 });
 

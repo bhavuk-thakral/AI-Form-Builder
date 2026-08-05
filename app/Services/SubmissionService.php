@@ -93,4 +93,22 @@ class SubmissionService
 
         return $query->latest()->paginate($perPage);
     }
+
+    /**
+     * Get query builder instance for CSV export.
+     */
+    public function getExportDataQuery(Form $form, ?string $search = null)
+    {
+        $query = $form->submissions()->with(['answers', 'version']);
+
+        if (!empty($search)) {
+            $query->where(function ($subQuery) use ($search) {
+                $subQuery->whereHas('answers', function ($ansQuery) use ($search) {
+                    $ansQuery->where('answer_value', 'like', "%{$search}%");
+                })->orWhere('ip_address', 'like', "%{$search}%");
+            });
+        }
+
+        return $query->latest();
+    }
 }

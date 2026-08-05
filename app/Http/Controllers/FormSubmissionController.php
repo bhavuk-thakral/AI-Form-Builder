@@ -92,4 +92,81 @@ class FormSubmissionController extends Controller
             'answers' => $detailedAnswers
         ]);
     }
+
+    /**
+     * Export form submissions as a filtered CSV download stream.
+     */
+    public function export(Request $request, Form $form)
+    {
+        // Enforce form ownership
+        if ($form->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $search = $request->query('search');
+        
+        // Extract non-section fields from form schema for mapping columns
+        $fields = collect($form->schema['fields'] ?? [])->where('type', '!=', 'section')->values();
+
+        // Build headers list
+        $headers = [
+            'Submission ID',
+            'Submitted At',
+            'IP Address',
+            'Duration (Seconds)'
+        ];
+        foreach ($fields as $field) {
+            $headers[] = $field['label'] ?? $field['key'];
+        }
+
+        $fileName = 'submissions-' . $form->id . '-' . date('Ymd-His') . '.csv';
+
+        $responseHeaders = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use ($form, $search, $fields, $headers) {
+            $file = fopen('php://output', 'w');
+            
+            // Write column headers
+            fputcsv($file, $headers);
+
+            // Fetch and write rows via lazy cursor chunking to prevent out-of-memory errors
+            $query = $this->submissionService->getExportDataQuery($form, $search);
+            
+            foreach ($query->cursor() as $sub) {
+                $row = [
+                    $sub->id,
+                    $sub->created_at->format('Y-m-d H:i:s'),
+                    $sub->ip_address,
+                    $sub->duration_seconds ?? 'N/A'
+                ];
+
+                // Write dynamic answers matching schema fields
+                foreach ($fields as $field) {
+                    $ans = $sub->answers->firstWhere('field_key', $field['key']);
+                    $val = $ans ? $ans->answer_value : '';
+
+                    if ($field['type'] === 'checkbox' && $val) {
+                        $decoded = json_decode($val, true);
+                        if (is_array($decoded)) {
+                            $val = implode(', ', $decoded);
+                        }
+                    }
+
+                    $row[] = $val;
+                }
+
+                fputcsv($file, $row);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $responseHeaders);
+    }
 }
