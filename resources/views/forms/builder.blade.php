@@ -562,6 +562,58 @@
         const hasOptions = ['dropdown', 'radio', 'checkbox'].includes(field.type);
         const optionsList = field.options || [];
 
+        // Build other fields options list for conditional logic dropdown
+        const otherFieldsOptions = formSchema.fields
+            .filter((f, idx) => idx !== index && f.type !== 'section')
+            .map(f => `<option value="${f.key}" ${field.condition_field === f.key ? 'selected' : ''}>${f.label || f.key}</option>`)
+            .join('');
+
+        // Build conditional logic HTML
+        let conditionalLogicHTML = '';
+        if (field.type !== 'section') {
+            const isCondEnabled = !!field.condition_field;
+            conditionalLogicHTML = `
+                <div class="mb-3 border-top pt-3 mt-3">
+                    <label class="form-label small fw-semibold text-secondary mb-2 d-block">
+                        <i class="bi bi-diagram-2 me-1"></i> Conditional Visibility
+                    </label>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="cond_toggle_${field.id}" ${isCondEnabled ? 'checked' : ''} 
+                            onchange="toggleConditionalLogic(${index}, this.checked)">
+                        <label class="form-check-label small text-muted" for="cond_toggle_${field.id}">Show field conditionally</label>
+                    </div>
+                    
+                    ${isCondEnabled ? `
+                    <div class="row g-2 mt-1 bg-light p-3 rounded-3 border">
+                        <div class="col-12 mb-2">
+                            <label class="form-label fs-8 text-secondary mb-1">Depends On Field</label>
+                            <select class="form-select form-select-sm text-dark bg-white" onchange="updateFieldProperty(${index}, 'condition_field', this.value)">
+                                <option value="">-- Select Field --</option>
+                                ${otherFieldsOptions}
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fs-8 text-secondary mb-1">Operator</label>
+                            <select class="form-select form-select-sm text-dark bg-white" onchange="updateFieldProperty(${index}, 'condition_operator', this.value); if(['empty','not_empty'].includes(this.value)) { updateFieldProperty(${index}, 'condition_value', ''); renderCanvas(); }">
+                                <option value="equals" ${field.condition_operator === 'equals' ? 'selected' : ''}>Equals</option>
+                                <option value="not_equals" ${field.condition_operator === 'not_equals' ? 'selected' : ''}>Not Equals</option>
+                                <option value="contains" ${field.condition_operator === 'contains' ? 'selected' : ''}>Contains</option>
+                                <option value="empty" ${field.condition_operator === 'empty' ? 'selected' : ''}>Is Empty</option>
+                                <option value="not_empty" ${field.condition_operator === 'not_empty' ? 'selected' : ''}>Is Not Empty</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fs-8 text-secondary mb-1">Value</label>
+                            <input type="text" class="form-control form-control-sm text-dark bg-white" value="${field.condition_value || ''}" 
+                                oninput="updateFieldProperty(${index}, 'condition_value', this.value)" 
+                                ${['empty', 'not_empty'].includes(field.condition_operator) ? 'disabled' : ''}>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
         // Build validation options
         let validationOptions = '';
         if (field.type === 'text') {
@@ -685,8 +737,26 @@
 
                 <!-- Option block -->
                 ${optionsBlockHTML}
+
+                <!-- Conditional Visibility Block -->
+                ${conditionalLogicHTML}
             </div>
         `;
+    }
+
+    // Toggle conditional logic configuration
+    function toggleConditionalLogic(index, enabled) {
+        let field = formSchema.fields[index];
+        if (enabled) {
+            field.condition_field = '';
+            field.condition_operator = 'equals';
+            field.condition_value = '';
+        } else {
+            delete field.condition_field;
+            delete field.condition_operator;
+            delete field.condition_value;
+        }
+        renderCanvas();
     }
 
     // Helper: Find validation rule value

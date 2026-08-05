@@ -159,14 +159,14 @@
 
                         @if($field['type'] === 'section')
                             <!-- Section Heading -->
-                            <div class="mt-5 mb-4 pt-3 border-top">
+                            <div class="mt-5 mb-4 pt-3 border-top form-field-container" id="container_{{ $key }}" data-field-key="{{ $key }}" data-condition-field="{{ $field['condition_field'] ?? '' }}" data-condition-operator="{{ $field['condition_operator'] ?? '' }}" data-condition-value="{{ $field['condition_value'] ?? '' }}" data-is-required="0">
                                 <h4 class="fw-bold text-indigo mb-1">{{ $field['label'] }}</h4>
                                 @if($helpText)
                                     <p class="text-secondary small mb-0">{{ $helpText }}</p>
                                 @endif
                             </div>
                         @else
-                            <div class="mb-4">
+                            <div class="mb-4 form-field-container" id="container_{{ $key }}" data-field-key="{{ $key }}" data-condition-field="{{ $field['condition_field'] ?? '' }}" data-condition-operator="{{ $field['condition_operator'] ?? '' }}" data-condition-value="{{ $field['condition_value'] ?? '' }}" data-is-required="{{ $required ? '1' : '0' }}">
                                 <label for="field_{{ $key }}" class="form-label small fw-semibold text-secondary mb-1">
                                     {{ $field['label'] }}
                                     @if($required)
@@ -312,6 +312,109 @@
             function resetStars(stars, className) {
                 stars.forEach(star => star.classList.remove(className));
             }
+
+            // Conditional Visibility Engine
+            function getFieldValue(key) {
+                // Try text, select, textarea
+                const inputEl = document.querySelector(`[name="${key}"]`);
+                if (inputEl) {
+                    return inputEl.value;
+                }
+                // Try radio
+                const checkedRadio = document.querySelector(`[name="${key}"]:checked`);
+                if (checkedRadio) {
+                    return checkedRadio.value;
+                }
+                // Try checkbox (array)
+                const checkedCheckboxes = Array.from(document.querySelectorAll(`[name="${key}[]"]:checked`))
+                    .map(el => el.value);
+                if (checkedCheckboxes.length > 0) {
+                    return checkedCheckboxes;
+                }
+                // Try rating hidden input
+                const ratingInput = document.getElementById(`rating_input_${key}`);
+                if (ratingInput) {
+                    return ratingInput.value;
+                }
+                return '';
+            }
+
+            function evaluateConditions() {
+                const containers = document.querySelectorAll('.form-field-container');
+                containers.forEach(container => {
+                    const triggerField = container.getAttribute('data-condition-field');
+                    const operator = container.getAttribute('data-condition-operator');
+                    const matchingVal = container.getAttribute('data-condition-value');
+
+                    if (!triggerField) {
+                        return; // No condition
+                    }
+
+                    const triggerVal = getFieldValue(triggerField);
+                    let visible = false;
+
+                    switch (operator) {
+                        case 'equals':
+                            if (Array.isArray(triggerVal)) {
+                                visible = triggerVal.includes(matchingVal);
+                            } else {
+                                visible = String(triggerVal) === String(matchingVal);
+                            }
+                            break;
+                        case 'not_equals':
+                            if (Array.isArray(triggerVal)) {
+                                visible = !triggerVal.includes(matchingVal);
+                            } else {
+                                visible = String(triggerVal) !== String(matchingVal);
+                            }
+                            break;
+                        case 'contains':
+                            if (Array.isArray(triggerVal)) {
+                                visible = triggerVal.some(v => v.toLowerCase().includes(matchingVal.toLowerCase()));
+                            } else {
+                                visible = String(triggerVal).toLowerCase().includes(String(matchingVal).toLowerCase());
+                            }
+                            break;
+                        case 'empty':
+                            visible = !triggerVal || triggerVal.length === 0;
+                            break;
+                        case 'not_empty':
+                            visible = !!triggerVal && triggerVal.length > 0;
+                            break;
+                        default:
+                            visible = true;
+                    }
+
+                    const inputsToToggle = container.querySelectorAll('input, select, textarea');
+                    if (visible) {
+                        container.classList.remove('d-none');
+                        if (container.getAttribute('data-is-required') === '1') {
+                            inputsToToggle.forEach(i => i.setAttribute('required', 'required'));
+                        }
+                    } else {
+                        container.classList.add('d-none');
+                        inputsToToggle.forEach(i => i.removeAttribute('required'));
+                    }
+                });
+            }
+
+            // Register event listeners for live condition matching
+            const publicForm = document.getElementById('public-response-form');
+            if (publicForm) {
+                publicForm.querySelectorAll('input, select, textarea').forEach(input => {
+                    input.addEventListener('input', evaluateConditions);
+                    input.addEventListener('change', evaluateConditions);
+                });
+            }
+
+            document.querySelectorAll('.rating-star').forEach(star => {
+                star.addEventListener('click', () => {
+                    setTimeout(evaluateConditions, 50);
+                });
+            });
+
+            // Run initial check
+            evaluateConditions();
 
             // Client side validation
             const form = document.getElementById('public-response-form');
