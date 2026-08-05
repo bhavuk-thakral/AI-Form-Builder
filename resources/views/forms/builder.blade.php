@@ -127,7 +127,7 @@
         </div>
         
         <!-- Tabs & Global Save Button -->
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 align-items-center">
             <ul class="nav nav-pills p-1 bg-light rounded-3 builder-nav-tabs shadow-sm" id="builderTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="canvas-tab" data-bs-toggle="tab" data-bs-target="#canvas-panel" type="button" role="tab" aria-controls="canvas-panel" aria-selected="true">
@@ -140,7 +140,12 @@
                     </button>
                 </li>
             </ul>
-            <form id="save-form-schema" action="{{ route('forms.update', $form->id) }}" method="POST">
+
+            <button type="button" class="btn btn-outline-custom py-2 px-3 shadow-sm rounded-3" data-bs-toggle="modal" data-bs-target="#versionHistoryModal" style="border-radius: 8px;">
+                <i class="bi bi-clock-history me-1"></i> Version History
+            </button>
+
+            <form id="save-form-schema" action="{{ route('forms.update', $form->id) }}" method="POST" class="mb-0">
                 @csrf
                 @method('PATCH')
                 <!-- Hidden inputs mapping details -->
@@ -865,7 +870,74 @@
     function hideJsonError() {
         document.getElementById('json-error-alert').classList.add('d-none');
     }
+</script>
 
+<!-- Modal: Version History -->
+<div class="modal fade" id="versionHistoryModal" tabindex="-1" aria-labelledby="versionHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow-sm bg-white">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <h5 class="modal-title fw-bold text-indigo" id="versionHistoryModalLabel">
+                    <i class="bi bi-clock-history me-2"></i>Version Rollback History
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 py-4">
+                <p class="text-muted small mb-4">Select a version state below to restore. Rollbacks commit a new revision log checkpoint, ensuring no history is lost.</p>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle border-0">
+                        <thead>
+                            <tr class="text-secondary small fw-bold" style="border-bottom: 2px solid #f3f4f6;">
+                                <th class="pb-3">Version</th>
+                                <th class="pb-3">Saved At</th>
+                                <th class="pb-3">Author</th>
+                                <th class="pb-3">Fields</th>
+                                <th class="pb-3 text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($form->versions()->orderBy('version_number', 'desc')->get() as $ver)
+                                <tr>
+                                    <td class="py-3">
+                                        <span class="badge bg-indigo-subtle text-indigo rounded-pill px-3 py-1.5 fw-bold">
+                                            v{{ $ver->version_number }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 small text-secondary">
+                                        {{ $ver->created_at->format('M d, Y h:i A') }}
+                                    </td>
+                                    <td class="py-3 small text-secondary fw-semibold">
+                                        {{ $ver->creator ? $ver->creator->name : 'System/AI' }}
+                                    </td>
+                                    <td class="py-3 small text-secondary">
+                                        {{ count($ver->schema['fields'] ?? []) }} fields
+                                    </td>
+                                    <td class="py-3 text-end">
+                                        <form method="POST" action="{{ route('forms.restore-version', [$form->id, $ver->id]) }}">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-indigo px-3 py-1 fw-bold rounded-pill" style="font-size: 0.8rem;">
+                                                Restore
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted small">
+                                        <i class="bi bi-folder-x fs-3 d-block mb-2 text-secondary opacity-50"></i>
+                                        No versions logged for this form.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
     // Submit global save request
     function submitFormSchema() {
         // Double check tab sync if currently viewing JSON panel

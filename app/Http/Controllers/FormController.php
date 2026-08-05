@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Form;
+use App\Models\FormVersion;
 use App\Services\FormBuilderService;
 use App\Jobs\GenerateFormFromPromptJob;
 use App\Jobs\EditFormWithAIJob;
@@ -185,5 +186,45 @@ class FormController extends Controller
             return redirect()->back()
                 ->with('toast_error', "Failed to import form document: " . $e->getMessage());
         }
+    }
+
+    /**
+     * Restore a specific form version history record.
+     */
+    public function restoreVersion(Form $form, FormVersion $version)
+    {
+        if ($form->user_id !== Auth::id() || $version->form_id !== $form->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // We create a NEW version record for the restoration action so we don't lose current state!
+        $nextVersionNumber = $form->versions()->max('version_number') + 1;
+
+        // Perform restore
+        $form->update([
+            'schema' => $version->schema,
+            'title' => $version->schema['title'] ?? $form->title,
+            'description' => $version->schema['description'] ?? $form->description,
+        ]);
+
+        // Save new version checkpoint representing the restore event
+        FormVersion::create([
+            'form_id' => $form->id,
+            'version_number' => $nextVersionNumber,
+            'schema' => $version->schema,
+            'created_by' => Auth::id(),
+        ]);
+
+        // Log restore event
+        \App\Models\ActivityLog::create([
+            'user_id' => Auth::id(),
+            'form_id' => $form->id,
+            'action' => 'restored',
+            'description' => "Restored form layout back to Version #{$version->version_number}.",
+            'ip_address' => request()->ip() ?? '127.0.0.1',
+        ]);
+
+        return redirect()->route('forms.edit', $form->id)
+            ->with('toast_success', "Form successfully restored back to Version #{$version->version_number}!");
     }
 }
