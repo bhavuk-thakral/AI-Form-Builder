@@ -218,62 +218,62 @@
                         
                         <div class="row g-2" id="toolbox">
                             <!-- Field Buttons -->
-                            <div class="col-6">
+                            <div class="col-6" data-type="section">
                                 <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('section')">
                                     <i class="bi bi-border-top text-primary me-2"></i> Section Heading
                                 </button>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" data-type="text">
                                 <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('text')">
                                     <i class="bi bi-fonts text-primary me-2"></i> Short Text
                                 </button>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" data-type="textarea">
                                 <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('textarea')">
                                     <i class="bi bi-text-paragraph text-primary me-2"></i> Long Text
                                 </button>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" data-type="number">
                                 <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('number')">
                                     <i class="bi bi-123 text-primary me-2"></i> Number
                                 </button>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" data-type="email">
                                 <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('email')">
                                     <i class="bi bi-envelope-at text-primary me-2"></i> Email Address
                                 </button>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" data-type="phone">
                                 <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('phone')">
                                     <i class="bi bi-telephone text-primary me-2"></i> Phone
                                 </button>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" data-type="date">
                                 <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('date')">
                                     <i class="bi bi-calendar text-primary me-2"></i> Date
                                 </button>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" data-type="dropdown">
                                 <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('dropdown')">
                                     <i class="bi bi-menu-button-wide text-primary me-2"></i> Dropdown
                                 </button>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" data-type="radio">
                                 <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('radio')">
                                     <i class="bi bi-ui-checks text-primary me-2"></i> Radio Buttons
                                 </button>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" data-type="checkbox">
                                 <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('checkbox')">
                                     <i class="bi bi-check2-square text-primary me-2"></i> Checkbox List
                                 </button>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" data-type="file">
                                 <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('file')">
                                     <i class="bi bi-cloud-arrow-up text-primary me-2"></i> File Upload
                                 </button>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" data-type="rating">
                                 <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('rating')">
                                     <i class="bi bi-star text-primary me-2"></i> Star Rating
                                 </button>
@@ -326,13 +326,42 @@
         // Initialize SortableJS on Canvas
         const el = document.getElementById('canvas-sortable');
         new Sortable(el, {
+            group: {
+                name: 'shared_fields',
+                pull: true,
+                put: true
+            },
             handle: '.field-drag-handle',
             animation: 150,
             ghostClass: 'bg-indigo-light',
             onEnd: function() {
                 reorderSchemaFields();
+            },
+            onAdd: function(evt) {
+                const fieldType = evt.item.getAttribute('data-type');
+                const targetIndex = evt.newIndex;
+                
+                if (evt.item.parentNode) {
+                    evt.item.parentNode.removeChild(evt.item);
+                }
+                
+                addNewFieldAt(fieldType, targetIndex);
             }
         });
+
+        // Initialize SortableJS on Toolbox
+        const toolboxEl = document.getElementById('toolbox');
+        if (toolboxEl) {
+            new Sortable(toolboxEl, {
+                group: {
+                    name: 'shared_fields',
+                    pull: 'clone',
+                    put: false
+                },
+                sort: false,
+                animation: 150
+            });
+        }
 
         // Initialize display list
         renderCanvas();
@@ -794,6 +823,30 @@
         expandedFields[newField.id] = true; // expand immediately on creation
         renderCanvas();
         window.showToast('Field Added', `Added "${label}" field to the canvas.`);
+    }
+
+    // Add field at index helper
+    function addNewFieldAt(type, index) {
+        let label = 'New ' + type.charAt(0).toUpperCase() + type.slice(1);
+        if (type === 'section') label = 'Section Title';
+        
+        const newField = {
+            id: 'f_' + Date.now() + '_' + formSchema.fields.length,
+            type: type,
+            label: label,
+            key: slugify(label) + '_' + Math.floor(Math.random() * 1000),
+            placeholder: type === 'section' ? '' : 'Enter details...',
+            help_text: '',
+            required: false,
+            default_value: type === 'rating' ? '0' : '',
+            validations: [],
+            options: ['Option A', 'Option B']
+        };
+
+        formSchema.fields.splice(index, 0, newField);
+        expandedFields[newField.id] = true;
+        renderCanvas();
+        window.showToast('Field Added', `Added "${label}" field at position ${index + 1}.`);
     }
 
     // Duplicate field
