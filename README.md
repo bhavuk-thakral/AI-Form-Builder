@@ -7,8 +7,8 @@ A modern, highly responsive AI-powered Form Builder built using **Laravel**, **M
 ## 🚀 Live Demo URL & Credentials
 - **Live Demo URL**: [https://walrus-eliminate-tapping.ngrok-free.dev](https://walrus-eliminate-tapping.ngrok-free.dev)
 - **Demo Credentials**:
-  - Email: `admin@formbuilder.com`
-  - Password: `Password123`
+  - Email: `bhavuk@test.com`
+  - Password: `Admin@123`
 
 ---
 

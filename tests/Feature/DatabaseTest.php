@@ -105,7 +105,7 @@ class DatabaseTest extends TestCase
     {
         $this->seed();
 
-        $this->assertDatabaseHas('users', ['email' => 'test@example.com']);
+        $this->assertDatabaseHas('users', ['email' => 'bhavuk@test.com']);
         $this->assertDatabaseHas('forms', ['title' => 'Internship Application Form']);
         $this->assertDatabaseHas('form_versions', ['version_number' => 1]);
         $this->assertDatabaseHas('submissions', ['duration_seconds' => 120]);

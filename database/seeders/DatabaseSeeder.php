@@ -22,9 +22,9 @@ class DatabaseSeeder extends Seeder
     {
         // 1. Create Default User
         $user = User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => bcrypt('password'),
+            'name' => 'Bhavuk',
+            'email' => 'bhavuk@test.com',
+            'password' => bcrypt('Admin@123'),
         ]);
 
         // 2. Create Internship Application Form
