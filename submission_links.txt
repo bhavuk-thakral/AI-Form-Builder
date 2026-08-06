@@ -1,0 +1,18 @@
+=========================================================
+AI-Powered Form Builder Assessment Submission Details
+=========================================================
+
+- Public GitHub Repository: https://github.com/bhavuk-thakral/AI-Form-Builder.git
+- Live Demo URL: https://walrus-eliminate-tapping.ngrok-free.dev
+- Demo Credentials:
+  - Email: bhavuk@test.com
+  - Password: Admin@123
+
+---------------------------------------------------------
+Google Drive Folder Deliverables:
+---------------------------------------------------------
+1. ai_form_builder_submission.zip (Complete codebase archive)
+2. ai_form_builder.sql (MySQL database structure & seeded data dump)
+3. sample_form.docx (Testing sample document for Word import)
+4. sample_form.xlsx (Testing sample spreadsheet for Excel import)
+=========================================================
