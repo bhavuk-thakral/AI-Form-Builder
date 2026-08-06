@@ -219,64 +219,64 @@
                         <div class="row g-2" id="toolbox">
                             <!-- Field Buttons -->
                             <div class="col-6" data-type="section">
-                                <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('section')">
+                                <div class="btn w-100 p-3 toolbox-card text-start small fw-medium" style="cursor: grab;" onclick="addNewField('section')">
                                     <i class="bi bi-border-top text-primary me-2"></i> Section Heading
-                                </button>
+                                </div>
                             </div>
                             <div class="col-6" data-type="text">
-                                <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('text')">
+                                <div class="btn w-100 p-3 toolbox-card text-start small fw-medium" style="cursor: grab;" onclick="addNewField('text')">
                                     <i class="bi bi-fonts text-primary me-2"></i> Short Text
-                                </button>
+                                </div>
                             </div>
                             <div class="col-6" data-type="textarea">
-                                <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('textarea')">
+                                <div class="btn w-100 p-3 toolbox-card text-start small fw-medium" style="cursor: grab;" onclick="addNewField('textarea')">
                                     <i class="bi bi-text-paragraph text-primary me-2"></i> Long Text
-                                </button>
+                                </div>
                             </div>
                             <div class="col-6" data-type="number">
-                                <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('number')">
+                                <div class="btn w-100 p-3 toolbox-card text-start small fw-medium" style="cursor: grab;" onclick="addNewField('number')">
                                     <i class="bi bi-123 text-primary me-2"></i> Number
-                                </button>
+                                </div>
                             </div>
                             <div class="col-6" data-type="email">
-                                <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('email')">
+                                <div class="btn w-100 p-3 toolbox-card text-start small fw-medium" style="cursor: grab;" onclick="addNewField('email')">
                                     <i class="bi bi-envelope-at text-primary me-2"></i> Email Address
-                                </button>
+                                </div>
                             </div>
                             <div class="col-6" data-type="phone">
-                                <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('phone')">
+                                <div class="btn w-100 p-3 toolbox-card text-start small fw-medium" style="cursor: grab;" onclick="addNewField('phone')">
                                     <i class="bi bi-telephone text-primary me-2"></i> Phone
-                                </button>
+                                </div>
                             </div>
                             <div class="col-6" data-type="date">
-                                <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('date')">
+                                <div class="btn w-100 p-3 toolbox-card text-start small fw-medium" style="cursor: grab;" onclick="addNewField('date')">
                                     <i class="bi bi-calendar text-primary me-2"></i> Date
-                                </button>
+                                </div>
                             </div>
                             <div class="col-6" data-type="dropdown">
-                                <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('dropdown')">
+                                <div class="btn w-100 p-3 toolbox-card text-start small fw-medium" style="cursor: grab;" onclick="addNewField('dropdown')">
                                     <i class="bi bi-menu-button-wide text-primary me-2"></i> Dropdown
-                                </button>
+                                </div>
                             </div>
                             <div class="col-6" data-type="radio">
-                                <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('radio')">
+                                <div class="btn w-100 p-3 toolbox-card text-start small fw-medium" style="cursor: grab;" onclick="addNewField('radio')">
                                     <i class="bi bi-ui-checks text-primary me-2"></i> Radio Buttons
-                                </button>
+                                </div>
                             </div>
                             <div class="col-6" data-type="checkbox">
-                                <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('checkbox')">
+                                <div class="btn w-100 p-3 toolbox-card text-start small fw-medium" style="cursor: grab;" onclick="addNewField('checkbox')">
                                     <i class="bi bi-check2-square text-primary me-2"></i> Checkbox List
-                                </button>
+                                </div>
                             </div>
                             <div class="col-6" data-type="file">
-                                <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('file')">
+                                <div class="btn w-100 p-3 toolbox-card text-start small fw-medium" style="cursor: grab;" onclick="addNewField('file')">
                                     <i class="bi bi-cloud-arrow-up text-primary me-2"></i> File Upload
-                                </button>
+                                </div>
                             </div>
                             <div class="col-6" data-type="rating">
-                                <button class="btn w-100 p-3 toolbox-card text-start small fw-medium" onclick="addNewField('rating')">
+                                <div class="btn w-100 p-3 toolbox-card text-start small fw-medium" style="cursor: grab;" onclick="addNewField('rating')">
                                     <i class="bi bi-star text-primary me-2"></i> Star Rating
-                                </button>
+                                </div>
                             </div>
                         </div>
                     </div>
