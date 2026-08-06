@@ -1,66 +1,141 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# AI-Powered Form Builder
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A modern, highly responsive AI-powered Form Builder built using **Laravel**, **MySQL**, **Tailwind**, and **ES6 Javascript**. 
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Live Demo URL & Credentials
+- **Live Demo URL**: `https://ai-form-builder.railway.internal/` *(Configure your deployed domain)*
+- **Demo Credentials**:
+  - Email: `admin@formbuilder.com`
+  - Password: `Password123`
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🛠️ Local Installation & Setup Steps
 
-## Learning Laravel
+1. **Clone the Repository**:
+   ```bash
+   git clone <your-repository-url>
+   cd ai-form-builder
+   ```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+2. **Install Composer Dependencies**:
+   ```bash
+   composer install
+   ```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+3. **Configure Environment Variables**:
+   Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+   *Edit `.env` to configure your MySQL database credentials and your Gemini API key.*
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+4. **Generate Application Key**:
+   ```bash
+   php artisan key:generate
+   ```
 
-## Laravel Sponsors
+5. **Run Migrations & Seeders**:
+   ```bash
+   php artisan migrate --seed
+   ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+6. **Link Storage Directory**:
+   ```bash
+   php artisan storage:link
+   ```
 
-### Premium Partners
+7. **Start the Development Server**:
+   ```bash
+   php artisan serve
+   ```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+8. **Start the Queue Worker**:
+   Run the background process to handle AI generation and edits:
+   ```bash
+   php artisan queue:work
+   ```
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 🔑 Environment Variables Checklist (`.env`)
+- `APP_KEY`: Generated application security key.
+- `DB_CONNECTION`: `mysql` (or `sqlite`/`pgsql`).
+- `DB_DATABASE`: Target database name.
+- `GEMINI_API_KEY`: API Key for AI co-pilot services.
+- `QUEUE_CONNECTION`: `database` (or `redis` in production).
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 🏗️ Architecture Overview
 
-## Security Vulnerabilities
+### Database Schema (ERD Summary) & Indexes
+- **`users`**: Form owners and dashboard administrators.
+- **`forms`**: Stores title, status (`draft`/`active`/`generating`), views counter, and the raw `schema` JSON column.
+- **`form_versions`**: Historical checkpoints of form schemas to support version rollbacks.
+- **`submissions`**: Form completion records, containing submission duration stopwatch latency, IP, and browser user-agent.
+- **`submission_answers`**: Value answers mapped to each form field key.
+- **`activity_logs`**: Audit trail of form creation, edit, version rollback, and document imports.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Performance Indexing Strategy
+To ensure the builder works efficiently at scale under large submission volumes, the following indexes are declared in the migrations:
+1. `forms(user_id)`: Speeds up dashboard retrieval of user forms.
+2. `forms(share_token)`: Ensures O(1) lookups for public form rendering.
+3. `submissions(form_id)`: Accelerates submission count queries and analytics aggregation.
+4. `submission_answers(submission_id, field_key)`: Optimizes answer data retrieval for reports.
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 📡 Key API & Web Endpoints
+
+### Form Operations
+- `GET /dashboard`: User home view displaying form summaries.
+- `POST /forms/generate`: Trigger AI generation from prompt.
+- `POST /forms/import`: Upload Word/Excel documents.
+- `POST /forms/template`: Create a form pre-populated from a template.
+- `GET /forms/{form}/edit`: Visual workspace builder workspace.
+- `PATCH /forms/{form}`: Update form schema and metadata.
+
+### Submissions & Reports
+- `GET /forms/{form}/submissions`: View submissions list.
+- `GET /forms/{form}/analytics`: View metrics and options distributions.
+- `GET /forms/{form}/submissions/export`: Export submissions as CSV.
+- `GET /share/{token}`: Publicly accessible URL for filling forms.
+- `POST /share/{token}/submit`: Save user submission data.
+
+---
+
+## 🤖 AI Prompt Engineering Strategy
+
+### System Prompt & Output Contract
+The AI prompt asks the LLM to output a valid JSON schema matching the contract format:
+```json
+{
+  "title": "Form Name",
+  "description": "Form Description",
+  "fields": [
+    {
+      "id": "unique_id",
+      "type": "text|textarea|dropdown|radio|checkbox|rating...",
+      "label": "Field Label",
+      "key": "slugified_key",
+      "placeholder": "Placeholder...",
+      "required": true,
+      "options": ["Option A", "Option B"]
+    }
+  ]
+}
+```
+
+### Handling Hallucinations
+- **Fallback Type Matching**: If the LLM generates an invalid field type, our validator automatically maps it to a standard `text` field.
+- **Graceful Repairs**: The job attempts to parse the text. If JSON decoding fails, it triggers regex cleanup blocks to strip markdown syntax and validates fields before persistence.
+
+---
+
+## ⚠️ Known Limitations
+1. **IP Views Counting**: Views increment on page load without IP deduplication.
+2. **Synchronous File Import**: Imports under 5MB run synchronously for quick canvas redirects. Large uploads could be queued for scale.
+3. **No Multi-Language Submissions**: Form translations are stored as distinct forms rather than a dynamic localized translation schema mapping.
