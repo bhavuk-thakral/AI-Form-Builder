@@ -1,18 +1,14 @@
 <?php
-
 namespace Database\Seeders;
-
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-
 use App\Models\Form;
 use App\Models\FormVersion;
 use App\Models\Submission;
 use App\Models\SubmissionAnswer;
 use App\Models\ActivityLog;
 use Illuminate\Support\Str;
-
 class DatabaseSeeder extends Seeder
 {
     /**
@@ -22,11 +18,13 @@ class DatabaseSeeder extends Seeder
     {
         // 1. Create Default User
         $user = User::factory()->create([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => bcrypt('password'),
             'name' => 'Bhavuk',
             'email' => 'bhavuk@test.com',
             'password' => bcrypt('Admin@123'),
         ]);
-
         // 2. Create Internship Application Form
         $internshipSchema = [
             'title' => 'Internship Application Form',
@@ -74,7 +72,6 @@ class DatabaseSeeder extends Seeder
                 ]
             ]
         ];
-
         $form1 = Form::create([
             'user_id' => $user->id,
             'title' => 'Internship Application Form',
@@ -84,7 +81,6 @@ class DatabaseSeeder extends Seeder
             'views_count' => 45,
             'share_token' => Str::random(32),
         ]);
-
         $version1 = FormVersion::create([
             'form_id' => $form1->id,
             'version_number' => 1,
@@ -92,7 +88,6 @@ class DatabaseSeeder extends Seeder
             'description' => 'Initial version',
             'created_by' => $user->id,
         ]);
-
         ActivityLog::create([
             'user_id' => $user->id,
             'form_id' => $form1->id,
@@ -100,7 +95,6 @@ class DatabaseSeeder extends Seeder
             'description' => 'Form created manually.',
             'ip_address' => '127.0.0.1',
         ]);
-
         ActivityLog::create([
             'user_id' => $user->id,
             'form_id' => $form1->id,
@@ -108,7 +102,6 @@ class DatabaseSeeder extends Seeder
             'description' => 'Published Version 1.',
             'ip_address' => '127.0.0.1',
         ]);
-
         // Mock 3 Submissions for Internship Form
         $submission1 = Submission::create([
             'form_id' => $form1->id,
@@ -117,7 +110,6 @@ class DatabaseSeeder extends Seeder
             'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0.0.0',
             'duration_seconds' => 120,
         ]);
-
         SubmissionAnswer::create([
             'submission_id' => $submission1->id,
             'field_key' => 'full_name',
@@ -138,7 +130,6 @@ class DatabaseSeeder extends Seeder
             'field_key' => 'resume_upload',
             'answer_value' => 'resumes/alice_resume.pdf',
         ]);
-
         $submission2 = Submission::create([
             'form_id' => $form1->id,
             'form_version_id' => $version1->id,
@@ -146,7 +137,6 @@ class DatabaseSeeder extends Seeder
             'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/17.5',
             'duration_seconds' => 95,
         ]);
-
         SubmissionAnswer::create([
             'submission_id' => $submission2->id,
             'field_key' => 'full_name',
@@ -167,7 +157,6 @@ class DatabaseSeeder extends Seeder
             'field_key' => 'resume_upload',
             'answer_value' => 'resumes/bob_resume.pdf',
         ]);
-
         // 3. Create Customer Feedback Survey
         $feedbackSchema = [
             'title' => 'Customer Feedback Survey',
@@ -195,7 +184,6 @@ class DatabaseSeeder extends Seeder
                 ]
             ]
         ];
-
         $form2 = Form::create([
             'user_id' => $user->id,
             'title' => 'Customer Feedback Survey',
@@ -205,7 +193,6 @@ class DatabaseSeeder extends Seeder
             'views_count' => 10,
             'share_token' => Str::random(32),
         ]);
-
         $version2 = FormVersion::create([
             'form_id' => $form2->id,
             'version_number' => 1,
@@ -213,7 +200,6 @@ class DatabaseSeeder extends Seeder
             'description' => 'Initial version',
             'created_by' => $user->id,
         ]);
-
         ActivityLog::create([
             'user_id' => $user->id,
             'form_id' => $form2->id,
@@ -221,7 +207,6 @@ class DatabaseSeeder extends Seeder
             'description' => 'Form created manually.',
             'ip_address' => '127.0.0.1',
         ]);
-
         // Mock 1 Submission for Feedback Survey
         $submission3 = Submission::create([
             'form_id' => $form2->id,
@@ -230,7 +215,6 @@ class DatabaseSeeder extends Seeder
             'user_agent' => 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 Chrome/124.0.0.0',
             'duration_seconds' => 45,
         ]);
-
         SubmissionAnswer::create([
             'submission_id' => $submission3->id,
             'field_key' => 'overall_rating',
